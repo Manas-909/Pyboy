@@ -83,52 +83,107 @@ def draw_btn(btn_down):
         pygame.draw.circle(window, ((156, 36, 90)), (550, 420), 25)
         pygame.draw.circle(window, ((40, 40, 40)), (550, 420), 25, 1)
 
-    
+
+def play_pong():
+    class Wall():
+        def __init__(self, x, y, width, height):
+            self.x = 400
+            self.y = 290
+            self.width = 50
+            self.height = 10
+            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+        def draw_wall(self):
+            pygame.draw.rect(window, ((198, 192, 189)), self.rect)
+            pygame.draw.rect(window, ((20, 20, 20)), self.rect, 1)
+
+
+def play_tetris():
+    pass
+
 
 
 def main(window):
     clock = pygame.time.Clock()
-    btn_down = []
+    btn_down = set()
     run = True
+
+    game_selected = False
+    game_list = ["pong", "tetris"]
+    cur_game = 0
+    game_choice = None
+
+    font_option = pygame.font.SysFont("Comic Sans MS", 12)
+    text1 = font_option.render("Option 1 ->", True, ((198, 192, 189)))
+    text2 = font_option.render("<- Option 2", True, ((198, 192, 189)))
+
+    text_pos = (400, 200)
+    opt_list = [text1, text2]
 
     while run:
         clock.tick(FPS)
         for events in pygame.event.get():
             if events.type == pygame.QUIT:
                 run = False
+
             if events.type == pygame.KEYDOWN:
                 if events.key == pygame.K_w:
-                    btn_down.append("btn_w")
+                    btn_down.add("btn_w")
                 elif events.key == pygame.K_s:
-                    btn_down.append("btn_s")
+                    btn_down.add("btn_s")
                 elif events.key == pygame.K_a:
-                    btn_down.append("btn_a")
+                    btn_down.add("btn_a")
                 elif events.key == pygame.K_d:
-                    btn_down.append("btn_d")
+                    btn_down.add("btn_d")
                 elif events.key == pygame.K_SPACE:
-                    btn_down.append("btn_spc")
+                    btn_down.add("btn_spc")
                 elif events.key == pygame.K_ESCAPE:
-                    btn_down.append("btn_esc")
+                    btn_down.add("btn_esc")
 
             elif events.type == pygame.KEYUP:
                 if events.key == pygame.K_w:
-                    btn_down.remove("btn_w")
+                    btn_down.discard("btn_w")
                 elif events.key == pygame.K_s:
-                    btn_down.remove("btn_s")
+                    btn_down.discard("btn_s")
                 elif events.key == pygame.K_a:
-                    btn_down.remove("btn_a")
+                    btn_down.discard("btn_a")
+                    if not game_selected:
+                        cur_game -= 1
+                        if cur_game < 0:
+                            cur_game = len(game_list) - 1
+
                 elif events.key == pygame.K_d:
-                    btn_down.remove("btn_d")
+                    btn_down.discard("btn_d")
+                    if not game_selected:
+                        cur_game += 1
+                        if cur_game >= len(game_list):
+                            cur_game = 0
                 elif events.key == pygame.K_SPACE:
-                    btn_down.remove("btn_spc")
+                    btn_down.discard("btn_spc")
+                    if not game_selected:
+                        game_selected = True
+                        game_choice =  game_list[cur_game]
+
                 elif events.key == pygame.K_ESCAPE:
-                    btn_down.remove("btn_esc")
+                    btn_down.discard("btn_esc")
+                    if game_selected:
+                        game_selected = False
+                        game_choice = None
+                        cur_game = 0
 
 
         window.fill((255, 255, 255))
 
         draw_gameboy()
         draw_btn(btn_down)
+
+        if not game_selected:
+            window.blit(opt_list[cur_game], text_pos)
+        if game_selected:
+            if game_choice == "pong":
+                play_pong()
+            elif game_choice == "tetris":
+                play_tetris()
 
         pygame.display.update()
 
