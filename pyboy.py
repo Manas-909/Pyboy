@@ -43,6 +43,7 @@ def draw_btn(btn_down):
     btn_3 = pygame.Rect(355, 420, 70, 35)
     btn_4 = pygame.Rect(320, 420, 70, 35)
 
+
     if "btn_w" in btn_down:
         pygame.draw.rect(window, ((39, 42, 41)), btn_1.scale_by(0.9))
     elif "btn_w" not in btn_down:
@@ -62,6 +63,20 @@ def draw_btn(btn_down):
         pygame.draw.rect(window, ((39, 42, 41)), btn_4.scale_by(0.9))
     elif "btn_a" not in btn_down:
         pygame.draw.rect(window, ((39, 42, 41)), btn_4)
+
+    if "btn_spc" in btn_down:
+        pygame.draw.circle(window, ((156, 36, 90)), (500, 450), 20)
+        pygame.draw.circle(window, ((40, 40, 40)), (500, 450), 20, 1)
+    elif "btn_spc" not in btn_down:
+        pygame.draw.circle(window, ((156, 36, 90)), (500, 450), 25)
+        pygame.draw.circle(window, ((40, 40, 40)), (500, 450), 25, 1)
+
+    if "btn_esc" in btn_down:
+        pygame.draw.circle(window, ((156, 36, 90)), (550, 420), 20)
+        pygame.draw.circle(window, ((40, 40, 40)), (550, 420), 20, 1)
+    elif "btn_esc" not in btn_down:
+        pygame.draw.circle(window, ((156, 36, 90)), (550, 420), 25)
+        pygame.draw.circle(window, ((40, 40, 40)), (550, 420), 25, 1)
 
     
 
@@ -85,6 +100,11 @@ def main(window):
                     btn_down.append("btn_a")
                 elif events.key == pygame.K_d:
                     btn_down.append("btn_d")
+                elif events.key == pygame.K_SPACE:
+                    btn_down.append("btn_spc")
+                elif events.key == pygame.K_ESCAPE:
+                    btn_down.append("btn_esc")
+
             elif events.type == pygame.KEYUP:
                 if events.key == pygame.K_w:
                     btn_down.remove("btn_w")
@@ -94,6 +114,10 @@ def main(window):
                     btn_down.remove("btn_a")
                 elif events.key == pygame.K_d:
                     btn_down.remove("btn_d")
+                elif events.key == pygame.K_SPACE:
+                    btn_down.remove("btn_spc")
+                elif events.key == pygame.K_ESCAPE:
+                    btn_down.remove("btn_esc")
 
 
         window.fill((255, 255, 255))
