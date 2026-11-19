@@ -13,10 +13,14 @@ def draw_gameboy():
     rect1 = pygame.Rect(275, 50, 350, 600)
     rect2 = pygame.Rect(300, 80, 300, 270)
     rect3 = pygame.Rect(325, 105, 240, 210)
-    rect4 = pygame.Rect(410, 330, 8, 55)
-    rect5 = pygame.Rect(390, 310, 8, 75)
-    rect6 = pygame.Rect(430, 350, 8, 35)
-    rect7 = pygame.Rect(370, 290, 8, 95)
+
+    rect4 = pygame.Rect(410, 360, 8, 55)
+    rect5 = pygame.Rect(390, 345, 8, 55)
+    rect6 = pygame.Rect(430, 370, 8, 55)
+    rect7 = pygame.Rect(450, 380, 8, 55)
+
+    font = pygame.font.SysFont("Arial Black", 40)
+    branding = font.render("Pyboy", True, ((27, 19, 56)))
 
     speaker = pygame.Surface((900, 800), pygame.SRCALPHA)
     pygame.draw.rect(speaker, ((114, 109, 111)), rect4, border_radius=6)
@@ -24,7 +28,7 @@ def draw_gameboy():
     pygame.draw.rect(speaker, ((114, 109, 111)), rect6, border_radius=6)
     pygame.draw.rect(speaker, ((114, 109, 111)), rect7, border_radius=6)
 
-    rotated_speaker = pygame.transform.rotate(speaker, 40)
+    rotated_speaker = pygame.transform.rotate(speaker, 60)
 
     pygame.draw.rect(window, ((197, 190, 188)), rect1, border_radius=15, border_bottom_right_radius=95)
     pygame.draw.rect(window, ((38, 40, 40)), rect1, 1, border_radius=15, border_bottom_right_radius=95)
@@ -36,6 +40,7 @@ def draw_gameboy():
     rect = rotated_speaker.get_rect()
 
     window.blit(rotated_speaker, rect)
+    window.blit(branding, (320, 570))
 
 def draw_btn(btn_down):
     btn_1 = pygame.Rect(355, 380, 35, 60)
