@@ -92,47 +92,46 @@ class Ball():
         self.radius = 10
         self.rect = pygame.Rect(self.x - 10, self.y - 10, 20, 20)
         self.ball_speed_x = 2
-        self.ball_speed_y = 2
+        self.ball_speed_y = -2
 
     def draw_ball(self):
         pygame.draw.circle(window, ((198, 192, 189)), (self.x, self.y), self.radius)
         pygame.draw.circle(window, ((20, 20, 20)), (self.x, self.y), self.radius, 1)
 
-
     def move_ball(self, wall, opp):
-        self.x += self.ball_speed_x
-        self.y += self.ball_speed_y
+        if self.rect.top < SCREEN.bottom:
+            self.x += self.ball_speed_x
+            self.y += self.ball_speed_y
 
-        self.rect.centerx = int(self.x)
-        self.rect.centery = int(self.y)
+            self.rect.centerx = int(self.x)
+            self.rect.centery = int(self.y)
 
-        if self.rect.left <= SCREEN.left:
-            self.rect.left = SCREEN.left
+            if self.rect.left <= SCREEN.left:
+                self.rect.left = SCREEN.left
+                self.x = self.rect.centerx
+                self.ball_speed_x = abs(self.ball_speed_x)
+
+            if self.rect.right >= SCREEN.right:
+                self.rect.right = SCREEN.right
+                self.x = self.rect.centerx
+                self.ball_speed_x = -abs(self.ball_speed_x)
+
+            if self.rect.colliderect(wall.rect):
+                if self.ball_speed_y > 0:
+                    self.rect.bottom = wall.rect.top
+                else:
+                    self.rect.top = wall.rect.bottom
+                self.ball_speed_y *= -1
+
+            if self.rect.colliderect(opp.rect):
+                if self.ball_speed_y < 0:
+                    self.rect.top = opp.rect.bottom
+                else:
+                    self.rect.bottom = opp.rect.top
+                self.ball_speed_y *= -1
+
             self.x = self.rect.centerx
-            self.ball_speed_x = abs(self.ball_speed_x)
-
-        if self.rect.right >= SCREEN.right:
-            self.rect.right = SCREEN.right
-            self.x = self.rect.centerx
-            self.ball_speed_x = -abs(self.ball_speed_x)
-
-        if self.rect.colliderect(wall.rect):
-            if self.ball_speed_y > 0:
-                self.rect.bottom = wall.rect.top
-            else:
-                self.rect.top = wall.rect.bottom
-            self.ball_speed_y *= -1
-
-        if self.rect.colliderect(opp.rect):
-            if self.ball_speed_y < 0:
-                self.rect.top = opp.rect.bottom
-            else:
-                self.rect.bottom = opp.rect.top
-            self.ball_speed_y *= -1
-
-        self.x = self.rect.centerx
-        self.y = self.rect.centery
-            
+            self.y = self.rect.centery
             
 
 class Wall():
@@ -148,11 +147,12 @@ class Wall():
         pygame.draw.rect(window, ((198, 192, 189)), self.rect)
         pygame.draw.rect(window, ((20, 20, 20)), self.rect, 1)
 
-    def move_player(self, btn_down):
-        if "btn_a" in btn_down and self.rect.left - 5 > SCREEN.left:
-            self.rect.x -= self.move_speed
-        elif "btn_d" in btn_down and self.rect.right + 5 < SCREEN.right:
-            self.rect.x += self.move_speed
+    def move_player(self, btn_down, ball):
+        if ball.rect.top < SCREEN.bottom:
+            if "btn_a" in btn_down and self.rect.left - 5 > SCREEN.left:
+                self.rect.x -= self.move_speed
+            elif "btn_d" in btn_down and self.rect.right + 5 < SCREEN.right:
+                self.rect.x += self.move_speed
 
 class Opponent_wall():
     def __init__(self):
@@ -179,7 +179,7 @@ class Opponent_wall():
 
 
 def play_pong(wall, opp, ball, btn_down):
-    wall.move_player(btn_down)
+    wall.move_player(btn_down, ball)
     wall.draw_wall()
 
     opp.move_opp(ball)
@@ -204,16 +204,29 @@ def main(window):
     cur_game = 0
     game_choice = None
 
-    font_option = pygame.font.SysFont("Comic Sans MS", 21)
-    text1 = font_option.render("Option 1 ->", True, ((198, 192, 189)))
-    text2 = font_option.render("<- Option 2", True, ((198, 192, 189)))
+    font_option1 = pygame.font.SysFont("Comic Sans MS", 30)
+    font_option2 = pygame.font.SysFont("Comic Sans MS", 11)
+    text1 = font_option1.render("Pong", True, ((198, 192, 189)))
+    text2 = font_option1.render("Tetris", True, ((198, 192, 189)))
 
-    text_pos = (390, 200)
+    info_text1 = font_option2.render("1. Use WASD to control", True, ((37, 34, 35)))
+    info_text2 = font_option2.render("2. Use Space to enter and ESC to quit", True, ((37, 34, 35)))
+
+    btn_text1 =  font_option2.render("SPACE", True, ((37, 34, 35)))
+    btn_text2 =  font_option2.render("ESC", True, ((37, 34, 35)))
+
+    game_text = font_option1.render("GAME OVER", True, ((198, 192, 189)))
+
+    next_text = font_option2.render("D: Next >>        << Previous :A", True, ((198, 192, 189)))
+
+    text_pos = (415, 195)
     opt_list = [text1, text2]
 
     wall = Wall()
     ball = Ball()
     opp = Opponent_wall()
+
+    info_rect = pygame.Rect(20, 550, 220, 50)
 
     while run:
         clock.tick(FPS)
@@ -265,6 +278,7 @@ def main(window):
                         if game_choice == "pong":
                             ball.x, ball.y = SCREEN.centerx, SCREEN.centery
                             ball.rect.x, ball.rect.y = SCREEN.centerx, SCREEN.centery
+                            ball.ball_speed_x, ball.ball_speed_y = 2, -2
 
                             opp.x, opp.y = 400, 106
                             wall.x, wall.y = 400, 304
@@ -272,16 +286,25 @@ def main(window):
                         game_selected = False
                         game_choice = None
                         cur_game = 0
-                        
-
 
         window.fill((255, 255, 255))
+        pygame.draw.rect(window, ((0,0,0)), info_rect, 1, 10)
 
         draw_gameboy()
         draw_btn(btn_down)
 
+        if ball.rect.top >= SCREEN.bottom:
+            window.blit(game_text, (360, 195))
+
+        window.blit(info_text1, (30, 560))
+        window.blit(info_text2, (30, 575))
+        
+        window.blit(btn_text1, (485, 480))
+        window.blit(btn_text2, (545, 450))
+
         if not game_selected:
             window.blit(opt_list[cur_game], text_pos)
+            window.blit(next_text, (380, 290))
         if game_selected:
             window.set_clip(SCREEN)
             if game_choice == "pong":
