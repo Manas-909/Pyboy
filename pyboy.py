@@ -83,12 +83,41 @@ def draw_btn(btn_down):
         pygame.draw.circle(window, ((156, 36, 90)), (550, 420), 25)
         pygame.draw.circle(window, ((40, 40, 40)), (550, 420), 25, 1)
 
-SCREEN_WIDTH = pygame.Rect(325, 105, 240, 210)
+SCREEN = pygame.Rect(325, 105, 240, 210)
+
+class Ball():
+    def __init__(self):
+        self.x = SCREEN.centerx
+        self.y = SCREEN.centery
+        self.radius = 10
+        self.rect = pygame.Rect(self.x - 10, self.y - 10, 20, 20)
+        self.ball_speed_x = 2
+        self.ball_speed_y = 2
+
+    def draw_ball(self):
+        pygame.draw.circle(window, ((198, 192, 189)), (self.x, self.y), self.radius)
+        pygame.draw.circle(window, ((20, 20, 20)), (self.x, self.y), self.radius, 1)
+
+
+    def move_ball(self, wall, opp):
+        self.x += self.ball_speed_x
+        self.rect.x += self.ball_speed_x
+        self.y += self.ball_speed_y
+        self.rect.y += self.ball_speed_y
+
+        if self.rect.top <= SCREEN.top or self.rect.bottom >= SCREEN.bottom:
+            self.ball_speed_y *= -1
+        if self.rect.left <= SCREEN.left or self.rect.right >= SCREEN.right:
+            self.ball_speed_x *= -1
+
+        if self.rect.colliderect(wall.rect) or self.rect.colliderect(opp.rect):
+            self.ball_speed_y *= -1
+            
 
 class Wall():
     def __init__(self):
         self.x = 400
-        self.y = 290
+        self.y = 304
         self.width = 50
         self.height = 10
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
@@ -99,15 +128,44 @@ class Wall():
         pygame.draw.rect(window, ((20, 20, 20)), self.rect, 1)
 
     def move_player(self, btn_down):
-        if "btn_a" in btn_down and self.rect.left - 5 > SCREEN_WIDTH.left:
+        if "btn_a" in btn_down and self.rect.left - 5 > SCREEN.left:
             self.rect.x -= self.move_speed
-        elif "btn_d" in btn_down and self.rect.right + 5 < SCREEN_WIDTH.right:
+        elif "btn_d" in btn_down and self.rect.right + 5 < SCREEN.right:
             self.rect.x += self.move_speed
 
+class Opponent_wall():
+    def __init__(self):
+        self.x = 400
+        self.y = 106
+        self.width = 50
+        self.height = 10
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.move_speed = 4
 
-def play_pong(wall, btn_down):
+    def move_opp(self, ball):
+        if ball.x > self.rect.centerx and self.rect.right + 5 < SCREEN.right:
+            self.x += self.move_speed
+            self.rect.x += self.move_speed
+        elif ball.x < self.rect.centerx and self.rect.left - 5 > SCREEN.left:
+            self.x -= self.move_speed
+            self.rect.x -= self.move_speed
+        
+
+    def draw_opp(self):
+        pygame.draw.rect(window, ((198, 192, 189)), self.rect)
+        pygame.draw.rect(window, ((20, 20, 20)), self.rect, 1)
+        
+
+
+def play_pong(wall, opp, ball, btn_down):
     wall.move_player(btn_down)
     wall.draw_wall()
+
+    opp.move_opp(ball)
+    opp.draw_opp()
+
+    ball.draw_ball()
+    ball.move_ball(wall, opp)
 
 
 def play_tetris():
@@ -133,6 +191,8 @@ def main(window):
     opt_list = [text1, text2]
 
     wall = Wall()
+    ball = Ball()
+    opp = Opponent_wall()
 
     while run:
         clock.tick(FPS)
@@ -195,7 +255,7 @@ def main(window):
             window.blit(opt_list[cur_game], text_pos)
         if game_selected:
             if game_choice == "pong":
-                play_pong(wall, btn_down)
+                play_pong(wall, opp, ball, btn_down)
             elif game_choice == "tetris":
                 play_tetris()
 
