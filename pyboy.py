@@ -101,17 +101,38 @@ class Ball():
 
     def move_ball(self, wall, opp):
         self.x += self.ball_speed_x
-        self.rect.x += self.ball_speed_x
         self.y += self.ball_speed_y
-        self.rect.y += self.ball_speed_y
 
-        if self.rect.top <= SCREEN.top or self.rect.bottom >= SCREEN.bottom:
-            self.ball_speed_y *= -1
-        if self.rect.left <= SCREEN.left or self.rect.right >= SCREEN.right:
-            self.ball_speed_x *= -1
+        self.rect.centerx = int(self.x)
+        self.rect.centery = int(self.y)
 
-        if self.rect.colliderect(wall.rect) or self.rect.colliderect(opp.rect):
+        if self.rect.left <= SCREEN.left:
+            self.rect.left = SCREEN.left
+            self.x = self.rect.centerx
+            self.ball_speed_x = abs(self.ball_speed_x)
+
+        if self.rect.right >= SCREEN.right:
+            self.rect.right = SCREEN.right
+            self.x = self.rect.centerx
+            self.ball_speed_x = -abs(self.ball_speed_x)
+
+        if self.rect.colliderect(wall.rect):
+            if self.ball_speed_y > 0:
+                self.rect.bottom = wall.rect.top
+            else:
+                self.rect.top = wall.rect.bottom
             self.ball_speed_y *= -1
+
+        if self.rect.colliderect(opp.rect):
+            if self.ball_speed_y < 0:
+                self.rect.top = opp.rect.bottom
+            else:
+                self.rect.bottom = opp.rect.top
+            self.ball_speed_y *= -1
+
+        self.x = self.rect.centerx
+        self.y = self.rect.centery
+            
             
 
 class Wall():
@@ -241,9 +262,17 @@ def main(window):
                 elif events.key == pygame.K_ESCAPE:
                     btn_down.discard("btn_esc")
                     if game_selected:
+                        if game_choice == "pong":
+                            ball.x, ball.y = SCREEN.centerx, SCREEN.centery
+                            ball.rect.x, ball.rect.y = SCREEN.centerx, SCREEN.centery
+
+                            opp.x, opp.y = 400, 106
+                            wall.x, wall.y = 400, 304
+                        
                         game_selected = False
                         game_choice = None
                         cur_game = 0
+                        
 
 
         window.fill((255, 255, 255))
@@ -254,10 +283,12 @@ def main(window):
         if not game_selected:
             window.blit(opt_list[cur_game], text_pos)
         if game_selected:
+            window.set_clip(SCREEN)
             if game_choice == "pong":
                 play_pong(wall, opp, ball, btn_down)
             elif game_choice == "tetris":
                 play_tetris()
+            window.set_clip(None)
 
         pygame.display.update()
 
