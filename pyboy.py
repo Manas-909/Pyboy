@@ -83,19 +83,31 @@ def draw_btn(btn_down):
         pygame.draw.circle(window, ((156, 36, 90)), (550, 420), 25)
         pygame.draw.circle(window, ((40, 40, 40)), (550, 420), 25, 1)
 
+SCREEN_WIDTH = pygame.Rect(325, 105, 240, 210)
 
-def play_pong():
-    class Wall():
-        def __init__(self, x, y, width, height):
-            self.x = 400
-            self.y = 290
-            self.width = 50
-            self.height = 10
-            self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+class Wall():
+    def __init__(self):
+        self.x = 400
+        self.y = 290
+        self.width = 50
+        self.height = 10
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.move_speed = 3
 
-        def draw_wall(self):
-            pygame.draw.rect(window, ((198, 192, 189)), self.rect)
-            pygame.draw.rect(window, ((20, 20, 20)), self.rect, 1)
+    def draw_wall(self):
+        pygame.draw.rect(window, ((198, 192, 189)), self.rect)
+        pygame.draw.rect(window, ((20, 20, 20)), self.rect, 1)
+
+    def move_player(self, btn_down):
+        if "btn_a" in btn_down and self.rect.left - 5 > SCREEN_WIDTH.left:
+            self.rect.x -= self.move_speed
+        elif "btn_d" in btn_down and self.rect.right + 5 < SCREEN_WIDTH.right:
+            self.rect.x += self.move_speed
+
+
+def play_pong(wall, btn_down):
+    wall.move_player(btn_down)
+    wall.draw_wall()
 
 
 def play_tetris():
@@ -113,12 +125,14 @@ def main(window):
     cur_game = 0
     game_choice = None
 
-    font_option = pygame.font.SysFont("Comic Sans MS", 12)
+    font_option = pygame.font.SysFont("Comic Sans MS", 21)
     text1 = font_option.render("Option 1 ->", True, ((198, 192, 189)))
     text2 = font_option.render("<- Option 2", True, ((198, 192, 189)))
 
-    text_pos = (400, 200)
+    text_pos = (390, 200)
     opt_list = [text1, text2]
+
+    wall = Wall()
 
     while run:
         clock.tick(FPS)
@@ -181,7 +195,7 @@ def main(window):
             window.blit(opt_list[cur_game], text_pos)
         if game_selected:
             if game_choice == "pong":
-                play_pong()
+                play_pong(wall, btn_down)
             elif game_choice == "tetris":
                 play_tetris()
 
