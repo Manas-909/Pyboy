@@ -85,6 +85,43 @@ def draw_btn(btn_down):
 
 SCREEN = pygame.Rect(325, 105, 240, 210)
 
+class Snake():
+    def __init__(self):
+        self.head = pygame.Rect(435, 200, 20, 20)
+        self.move_speed = 3
+        self.direction = "right"
+
+    def snake_direction(self, btn_down):
+        if "btn_w" in btn_down and self.direction != "down":
+            self.direction = "up"
+        elif "btn_s" in btn_down and self.direction != "up":
+            self.direction = "down"
+        elif "btn_d" in btn_down and self.direction != "left":
+            self.direction = "right"
+        elif "btn_a" in btn_down and self.direction != "right":
+            self.direction = "left"
+
+    def move_snake(self):
+        lost = False
+
+        if self.head.right >= SCREEN.right or self.head.left <= SCREEN.left or self.head.top <= SCREEN.top or self.head.bottom >= SCREEN.bottom:
+            lost = True
+
+        if self.direction == "up" and not lost:
+            self.head.y -= self.move_speed
+        elif self.direction == "right" and not lost:
+            self.head.x += self.move_speed
+        elif self.direction == "left" and not lost:
+            self.head.x -= self.move_speed
+        elif self.direction == "down" and not lost:
+            self.head.y += self.move_speed
+
+
+    def draw_snake(self):
+        pygame.draw.rect(window, ((198, 192, 189)), self.head)
+        pygame.draw.rect(window, ((20, 20, 20)), self.head, 1)
+
+
 class Ball():
     def __init__(self):
         self.x = SCREEN.centerx
@@ -189,8 +226,10 @@ def play_pong(wall, opp, ball, btn_down):
     ball.move_ball(wall, opp)
 
 
-def play_tetris():
-    pass
+def play_snake(snake, btn_down):
+    snake.snake_direction(btn_down)
+    snake.move_snake()
+    snake.draw_snake()
 
 
 
@@ -200,14 +239,14 @@ def main(window):
     run = True
 
     game_selected = False
-    game_list = ["pong", "tetris"]
+    game_list = ["pong", "snake"]
     cur_game = 0
     game_choice = None
 
     font_option1 = pygame.font.SysFont("Comic Sans MS", 30)
     font_option2 = pygame.font.SysFont("Comic Sans MS", 11)
     text1 = font_option1.render("Pong", True, ((198, 192, 189)))
-    text2 = font_option1.render("Tetris", True, ((198, 192, 189)))
+    text2 = font_option1.render("Snake", True, ((198, 192, 189)))
 
     info_text1 = font_option2.render("1. Use WASD to control", True, ((37, 34, 35)))
     info_text2 = font_option2.render("2. Use Space to enter and ESC to quit", True, ((37, 34, 35)))
@@ -219,12 +258,14 @@ def main(window):
 
     next_text = font_option2.render("D: Next >>        << Previous :A", True, ((198, 192, 189)))
 
-    text_pos = (415, 195)
+    text_pos = (410, 195)
     opt_list = [text1, text2]
 
     wall = Wall()
     ball = Ball()
     opp = Opponent_wall()
+
+    snake = Snake()
 
     info_rect = pygame.Rect(20, 550, 220, 50)
 
@@ -282,6 +323,9 @@ def main(window):
 
                             opp.x, opp.y = 400, 106
                             wall.x, wall.y = 400, 304
+
+                        if game_choice == "snake":
+                            snake.head.x, snake.head.y = 435, 200
                         
                         game_selected = False
                         game_choice = None
@@ -296,6 +340,15 @@ def main(window):
         if ball.rect.top >= SCREEN.bottom:
             window.blit(game_text, (360, 195))
 
+        if snake.head.right >= SCREEN.right:
+            window.blit(game_text, (360, 195))
+        elif snake.head.left <= SCREEN.left:
+            window.blit(game_text, (360, 195))
+        elif snake.head.top <= SCREEN.top:
+            window.blit(game_text, (360, 195))
+        elif snake.head.bottom >= SCREEN.bottom:
+            window.blit(game_text, (360, 195)) 
+
         window.blit(info_text1, (30, 560))
         window.blit(info_text2, (30, 575))
         
@@ -309,8 +362,8 @@ def main(window):
             window.set_clip(SCREEN)
             if game_choice == "pong":
                 play_pong(wall, opp, ball, btn_down)
-            elif game_choice == "tetris":
-                play_tetris()
+            elif game_choice == "snake":
+                play_snake(snake, btn_down)
             window.set_clip(None)
 
         pygame.display.update()
