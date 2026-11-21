@@ -1,4 +1,4 @@
-import pygame, os, math, sys
+import pygame, os, math, sys, random
 
 pygame.init()
 pygame.display.set_caption("Pyboy")
@@ -84,12 +84,19 @@ def draw_btn(btn_down):
         pygame.draw.circle(window, ((40, 40, 40)), (550, 420), 25, 1)
 
 SCREEN = pygame.Rect(325, 105, 240, 210)
+Tile_size = 10
 
 class Snake():
     def __init__(self):
-        self.head = pygame.Rect(435, 200, 20, 20)
-        self.move_speed = 3
+        self.body = [
+            pygame.Rect(435, 200, 20, 20),
+            pygame.Rect(425, 200, 20, 20),
+        ]
+        self.move_speed = Tile_size
         self.direction = "right"
+        self.grow = False
+        self.move_timer = 0
+        self.move_delay = 8
 
     def snake_direction(self, btn_down):
         if "btn_w" in btn_down and self.direction != "down":
@@ -102,24 +109,55 @@ class Snake():
             self.direction = "left"
 
     def move_snake(self):
-        lost = False
+        self.move_timer += 1
+        if self.move_timer < self.move_delay:
+            return
+        self.move_timer = 0
 
-        if self.head.right >= SCREEN.right or self.head.left <= SCREEN.left or self.head.top <= SCREEN.top or self.head.bottom >= SCREEN.bottom:
-            lost = True
+        head = self.body[0]
 
-        if self.direction == "up" and not lost:
-            self.head.y -= self.move_speed
-        elif self.direction == "right" and not lost:
-            self.head.x += self.move_speed
-        elif self.direction == "left" and not lost:
-            self.head.x -= self.move_speed
-        elif self.direction == "down" and not lost:
-            self.head.y += self.move_speed
+        if head.right >= SCREEN.right or head.left <= SCREEN.left or head.top <= SCREEN.top or head.bottom >= SCREEN.bottom:
+            return
 
+        new_head = head.copy()
+        if self.direction == "up":
+            new_head.y -= self.move_speed
+        elif self.direction == "down":
+            new_head.y += self.move_speed
+        elif self.direction == "left":
+            new_head.x -= self.move_speed
+        elif self.direction == "right":
+            new_head.x += self.move_speed
+
+        self.body.insert(0, new_head)
+
+        if not self.grow:
+            self.body.pop()
+        else:
+            self.grow = False
 
     def draw_snake(self):
-        pygame.draw.rect(window, ((198, 192, 189)), self.head)
-        pygame.draw.rect(window, ((20, 20, 20)), self.head, 1)
+        for i, segment in enumerate(self.body):
+            if i == 0:
+                color = (220, 215, 212)
+            else:
+                color = (198, 192, 189)
+            pygame.draw.rect(window, color, segment)
+            pygame.draw.rect(window, (20, 20, 20), segment, 1)
+
+class Apple():
+    def __init__(self):
+        self.get_random()
+
+    def get_random(self):
+        col = random.randint(0, (SCREEN.width // Tile_size) -1)
+        row = random.randint(0, (SCREEN.height // Tile_size) -1)
+
+        self.rect = pygame.Rect(SCREEN.left + col * Tile_size, SCREEN.top + row * Tile_size, Tile_size, Tile_size)
+
+    def draw_apple(self):
+        pygame.draw.rect(window, (156, 36, 90), self.rect)
+        pygame.draw.rect(window, (20, 20, 20), self.rect, 1)
 
 
 class Ball():
@@ -226,11 +264,16 @@ def play_pong(wall, opp, ball, btn_down):
     ball.move_ball(wall, opp)
 
 
-def play_snake(snake, btn_down):
+def play_snake(snake, apple, btn_down):
     snake.snake_direction(btn_down)
     snake.move_snake()
     snake.draw_snake()
 
+    apple.draw_apple()
+
+    if snake.body[0].colliderect(apple.rect):
+        snake.grow = True
+        apple.get_random()
 
 
 def main(window):
@@ -266,6 +309,7 @@ def main(window):
     opp = Opponent_wall()
 
     snake = Snake()
+    apple = Apple()
 
     info_rect = pygame.Rect(20, 550, 220, 50)
 
@@ -325,11 +369,18 @@ def main(window):
                             wall.x, wall.y = 400, 304
 
                         if game_choice == "snake":
-                            snake.head.x, snake.head.y = 435, 200
+                            snake.body = [
+                                pygame.Rect(435, 200, 20, 20),
+                                pygame.Rect(415, 200, 20, 20),
+                                pygame.Rect(395, 200, 20, 20),
+                            ]
+
+                            snake.direction = "right"
+                            snake.move_timer = 0
+                            apple.get_random()
                         
                         game_selected = False
                         game_choice = None
-                        cur_game = 0
 
         window.fill((255, 255, 255))
         pygame.draw.rect(window, ((0,0,0)), info_rect, 1, 10)
@@ -340,13 +391,13 @@ def main(window):
         if ball.rect.top >= SCREEN.bottom:
             window.blit(game_text, (360, 195))
 
-        if snake.head.right >= SCREEN.right:
+        if snake.body[0].right >= SCREEN.right:
             window.blit(game_text, (360, 195))
-        elif snake.head.left <= SCREEN.left:
+        elif snake.body[0].left <= SCREEN.left:
             window.blit(game_text, (360, 195))
-        elif snake.head.top <= SCREEN.top:
+        elif snake.body[0].top <= SCREEN.top:
             window.blit(game_text, (360, 195))
-        elif snake.head.bottom >= SCREEN.bottom:
+        elif snake.body[0].bottom >= SCREEN.bottom:
             window.blit(game_text, (360, 195)) 
 
         window.blit(info_text1, (30, 560))
@@ -363,7 +414,7 @@ def main(window):
             if game_choice == "pong":
                 play_pong(wall, opp, ball, btn_down)
             elif game_choice == "snake":
-                play_snake(snake, btn_down)
+                play_snake(snake, apple, btn_down)
             window.set_clip(None)
 
         pygame.display.update()
